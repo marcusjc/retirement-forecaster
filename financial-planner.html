@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirement Savings Forecaster</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; height: 400px; width: 100%; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                    <i data-lucide="wallet" class="text-indigo-600"></i>
+                    Retirement Forecaster
+                </h1>
+                <p class="text-slate-500 mt-1">Plan your future spending and financial legacy.</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="resetDefaults()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                    <i data-lucide="rotate-ccw" size="16"></i> Reset
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Settings Sidebar -->
+            <aside class="lg:col-span-4 space-y-6">
+                <!-- Core Assumptions -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-semibold mb-5 flex items-center gap-2">
+                        <i data-lucide="settings-2" class="text-indigo-500" size="20"></i>
+                        Core Assumptions
+                    </h2>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5">Starting Savings (£)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400">£</span>
+                                <input type="number" id="capitalInput" value="600000" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5">Annual Spending (£)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400">£</span>
+                                <input type="number" id="spendInput" value="25000" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase">Return (%)</label>
+                                <input type="number" id="returnInput" value="3" step="0.1" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase">Inflation (%)</label>
+                                <input type="number" id="inflationInput" value="2.5" step="0.1" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase flex justify-between">
+                                Forecast Years <span id="yearDisplay" class="text-indigo-600">30</span>
+                            </label>
+                            <input type="range" id="yearsInput" min="10" max="60" value="30" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Gifts -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i data-lucide="gift" class="text-rose-500" size="20"></i>
+                        One-off Gifts
+                    </h2>
+                    
+                    <div id="giftList" class="space-y-3 mb-5">
+                        <!-- Gifts will be injected here -->
+                    </div>
+
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="newGiftYear" placeholder="Year" class="p-2 text-sm border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-indigo-500">
+                            <input type="number" id="newGiftAmount" placeholder="Amount £" class="p-2 text-sm border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <input type="text" id="newGiftLabel" placeholder="Description" class="w-full p-2 text-sm border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-indigo-500">
+                        <button onclick="addGift()" class="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white p-2 rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium">
+                            <i data-lucide="plus" size="16"></i> Add Gift
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Visualization Area -->
+            <main class="lg:col-span-8 space-y-6">
+                
+                <!-- Status Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
+                        <div class="bg-emerald-100 p-3 rounded-xl">
+                            <i data-lucide="banknote" class="text-emerald-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tight">Starting Position</p>
+                            <p id="statStarting" class="text-2xl font-bold text-slate-800">£0</p>
+                        </div>
+                    </div>
+                    <div id="longevityCard" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
+                        <div id="longevityIcon" class="bg-indigo-100 p-3 rounded-xl transition-colors">
+                            <i data-lucide="hourglass" class="text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tight">Savings Longevity</p>
+                            <p id="statLongevity" class="text-2xl font-bold text-slate-800">Calculating...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-800">Projected Savings Balance</h3>
+                        <div class="flex gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Balance</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> Spending</span>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Milestone Table -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                        <h3 class="font-bold text-slate-800">5-Year Milestones</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50/50 border-b border-slate-100 text-xs uppercase text-slate-400 font-bold">
+                                <tr>
+                                    <th class="px-6 py-3">Year</th>
+                                    <th class="px-6 py-3">Projected Balance</th>
+                                    <th class="px-6 py-3">Annual Spend</th>
+                                    <th class="px-6 py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="milestoneTable" class="text-sm divide-y divide-slate-100">
+                                <!-- Table rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        // --- State ---
+        let gifts = [
+            { id: 1, year: 5, amount: 20000, label: "Gift to Children" }
+        ];
+        let chart = null;
+
+        // --- Selectors ---
+        const inputs = ['capitalInput', 'spendInput', 'returnInput', 'inflationInput', 'yearsInput'];
+        
+        // --- Initial Load ---
+        window.onload = () => {
+            lucide.createIcons();
+            initChart();
+            updateAll();
+            
+            // Add listeners to all inputs
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    if (id === 'yearsInput') {
+                        document.getElementById('yearDisplay').innerText = document.getElementById(id).value;
+                    }
+                    updateAll();
+                });
+            });
+        };
+
+        function resetDefaults() {
+            document.getElementById('capitalInput').value = 600000;
+            document.getElementById('spendInput').value = 31000;
+            document.getElementById('returnInput').value = 3;
+            document.getElementById('inflationInput').value = 2.5;
+            document.getElementById('yearsInput').value = 30;
+            document.getElementById('yearDisplay').innerText = 30;
+            gifts = [{ id: 1, year: 5, amount: 20000, label: "Gift to Children" }];
+            updateAll();
+        }
+
+        // --- Calculations ---
+        function calculateForecast() {
+            const capital = parseFloat(document.getElementById('capitalInput').value) || 0;
+            const spend = parseFloat(document.getElementById('spendInput').value) || 0;
+            const returns = (parseFloat(document.getElementById('returnInput').value) || 0) / 100;
+            const inflation = (parseFloat(document.getElementById('inflationInput').value) || 0) / 100;
+            const years = parseInt(document.getElementById('yearsInput').value) || 30;
+
+            let currentBalance = capital;
+            let currentSpend = spend;
+            const data = [];
+
+            for (let i = 0; i <= years; i++) {
+                // Find and apply gifts for this year
+                const yearGifts = gifts.filter(g => g.year == i).reduce((sum, g) => sum + g.amount, 0);
+                currentBalance -= yearGifts;
+
+                data.push({
+                    year: i,
+                    balance: Math.max(0, currentBalance),
+                    spend: currentSpend,
+                    gifts: yearGifts
+                });
+
+                if (currentBalance > 0) {
+                    const interest = currentBalance * returns;
+                    currentBalance = (currentBalance + interest) - currentSpend;
+                    currentSpend = currentSpend * (1 + inflation);
+                } else {
+                    currentBalance = 0;
+                }
+            }
+            return data;
+        }
+
+        // --- UI Updates ---
+        function updateAll() {
+            const data = calculateForecast();
+            updateChart(data);
+            updateStats(data);
+            updateGiftsUI();
+            updateTable(data);
+        }
+
+        function updateStats(data) {
+            const capital = parseFloat(document.getElementById('capitalInput').value) || 0;
+            document.getElementById('statStarting').innerText = formatCurrency(capital);
+            
+            const depletionPoint = data.find(d => d.balance === 0);
+            const longevityText = document.getElementById('statLongevity');
+            const longevityCard = document.getElementById('longevityCard');
+            const longevityIcon = document.getElementById('longevityIcon');
+
+            if (depletionPoint) {
+                longevityText.innerText = `Year ${depletionPoint.year}`;
+                longevityText.className = "text-2xl font-bold text-rose-600";
+                longevityCard.classList.replace('border-slate-200', 'border-rose-200');
+                longevityIcon.classList.replace('bg-indigo-100', 'bg-rose-100');
+                longevityIcon.innerHTML = `<i data-lucide="alert-triangle" class="text-rose-600"></i>`;
+            } else {
+                longevityText.innerText = `30+ Years`;
+                longevityText.className = "text-2xl font-bold text-emerald-600";
+                longevityCard.classList.replace('border-rose-200', 'border-slate-200');
+                longevityIcon.classList.replace('bg-rose-100', 'bg-emerald-100');
+                longevityIcon.innerHTML = `<i data-lucide="check-circle" class="text-emerald-600"></i>`;
+            }
+            lucide.createIcons();
+        }
+
+        function updateGiftsUI() {
+            const container = document.getElementById('giftList');
+            container.innerHTML = '';
+            
+            gifts.sort((a,b) => a.year - b.year).forEach(gift => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 group transition-all hover:border-slate-300";
+                div.innerHTML = `
+                    <div class="text-sm">
+                        <span class="font-bold text-slate-700">Year ${gift.year}:</span> ${gift.label}
+                        <div class="text-slate-500 font-mono text-xs">${formatCurrency(gift.amount)}</div>
+                    </div>
+                    <button onclick="removeGift(${gift.id})" class="text-slate-300 hover:text-rose-500 transition-colors">
+                        <i data-lucide="trash-2" size="16"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function addGift() {
+            const year = parseInt(document.getElementById('newGiftYear').value);
+            const amount = parseFloat(document.getElementById('newGiftAmount').value);
+            const label = document.getElementById('newGiftLabel').value || "Financial Gift";
+
+            if (!isNaN(year) && !isNaN(amount)) {
+                gifts.push({ id: Date.now(), year, amount, label });
+                document.getElementById('newGiftYear').value = '';
+                document.getElementById('newGiftAmount').value = '';
+                document.getElementById('newGiftLabel').value = '';
+                updateAll();
+            }
+        }
+
+        function removeGift(id) {
+            gifts = gifts.filter(g => g.id !== id);
+            updateAll();
+        }
+
+        function updateTable(data) {
+            const tbody = document.getElementById('milestoneTable');
+            tbody.innerHTML = '';
+            
+            data.filter((d, i) => i % 5 === 0 || i === data.length - 1).forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-semibold text-slate-500">Year ${row.year}</td>
+                    <td class="px-6 py-4 font-mono font-bold text-slate-800">${formatCurrency(row.balance)}</td>
+                    <td class="px-6 py-4 text-slate-500 font-mono">${formatCurrency(row.spend)}</td>
+                    <td class="px-6 py-4">
+                        ${row.balance > 0 
+                            ? '<span class="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase">Healthy</span>' 
+                            : '<span class="px-2 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold uppercase">Depleted</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Chart Functions ---
+        function initChart() {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(79, 70, 229, 0.15)');
+            gradient.addColorStop(1, 'rgba(79, 70, 229, 0)');
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Savings Balance',
+                            data: [],
+                            borderColor: '#4f46e5',
+                            borderWidth: 3,
+                            fill: true,
+                            backgroundColor: gradient,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: 'Annual Spend',
+                            data: [],
+                            borderColor: '#fb7185',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 12,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                label: (context) => ` ${context.dataset.label}: ${formatCurrency(context.parsed.y)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { size: 11 } }
+                        },
+                        y: {
+                            grid: { color: '#f1f5f9' },
+                            ticks: { 
+                                color: '#94a3b8', 
+                                font: { size: 11 },
+                                callback: (val) => '£' + (val / 1000) + 'k'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart(data) {
+            chart.data.labels = data.map(d => d.year);
+            chart.data.datasets[0].data = data.map(d => d.balance);
+            chart.data.datasets[1].data = data.map(d => d.spend);
+            chart.update('none'); // No animation for smoother input dragging
+        }
+
+        // --- Helpers ---
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('en-GB', { 
+                style: 'currency', 
+                currency: 'GBP', 
+                maximumFractionDigits: 0 
+            }).format(val);
+        }
+    </script>
+</body>
+</html>
