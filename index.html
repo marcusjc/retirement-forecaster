@@ -223,20 +223,21 @@
             const data = [];
 
             for (let i = 0; i <= years; i++) {
-                // Find and apply gifts for this year
-                const yearGifts = gifts.filter(g => g.year == i).reduce((sum, g) => sum + g.amount, 0);
-                currentBalance -= yearGifts;
-
                 data.push({
                     year: i,
                     balance: Math.max(0, currentBalance),
                     spend: currentSpend,
-                    gifts: yearGifts
+                    gifts: 0
                 });
 
                 if (currentBalance > 0) {
                     const interest = currentBalance * returns;
                     currentBalance = (currentBalance + interest) - currentSpend;
+                    
+                    // Apply gifts AFTER calculating interest and spending for the year
+                    const yearGifts = gifts.filter(g => g.year == i).reduce((sum, g) => sum + g.amount, 0);
+                    currentBalance -= yearGifts;
+                    
                     currentSpend = currentSpend * (1 + inflation);
                 } else {
                     currentBalance = 0;
