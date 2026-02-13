@@ -14,6 +14,54 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         .chart-container { position: relative; height: 400px; width: 100%; }
+        
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: #1e293b;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 400;
+            white-space: nowrap;
+            max-width: 320px;
+            white-space: normal;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+            line-height: 1.4;
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-2px);
+            border: 5px solid transparent;
+            border-top-color: #1e293b;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+        }
+        
+        .tooltip:hover::before,
+        .tooltip:hover::after {
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -27,8 +75,9 @@
                     Retirement Forecaster
                 </h1>
                 <p class="text-slate-500 mt-1">Plan your future spending and financial legacy.</p>
-                <p class="text-slate-500 mt-1">Income is based on the return multiplied by the savings balance at the start of each year and initial values have been set based on Jan 2026 info. Return can be adjusted below.</p>
-                <p class="text-slate-500 mt-1">Expenditure is assumed to grow at the rate of inflation. You can set this below.</p>
+                <p class="text-slate-500 mt-1">Income is based on the return multiplied by the savings balance at the start of each year and initial values have been set based on Jan 2026 info.</p>
+                <p class="text-slate-500 mt-1">Expenditure is assumed to grow at the rate of inflation.</p>
+                <p class="text-slate-500 mt-1">Use the help icons for more info.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="resetDefaults()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
@@ -50,7 +99,12 @@
                     
                     <div class="space-y-5">
                         <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1.5">Starting Savings (£)</label>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                Starting Savings (£)
+                                <span class="tooltip" data-tooltip="The total amount of savings you have now.">
+                                    <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                </span>
+                            </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-slate-400">£</span>
                                 <input type="number" id="capitalInput" value="640000" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
@@ -58,7 +112,12 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1.5">Annual Spending (£)</label>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                Annual Spending (£)
+                                <span class="tooltip" data-tooltip="How much you plan to spend each year. This will increase with inflation automatically">
+                                    <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                </span>
+                            </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-slate-400">£</span>
                                 <input type="number" id="spendInput" value="37200" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
@@ -66,7 +125,12 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1.5">Annual Pension Income (£)</label>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                Annual Pension Income (£)
+                                <span class="tooltip" data-tooltip="Fixed yearly income from your pension. This is added to your savings each year">
+                                    <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                </span>
+                            </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-slate-400">£</span>
                                 <input type="number" id="pensionInput" value="15400" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
@@ -75,18 +139,34 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase">Return (%)</label>
+                                <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase flex items-center gap-1.5">
+                                    Return (%)
+                                    <span class="tooltip" data-tooltip="Expected annual income generated from your savings from investments (dividends and interest).">
+                                        <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                    </span>
+                                </label>
                                 <input type="number" id="returnInput" value="2.1" step="0.1" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase">Inflation (%)</label>
+                                <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase flex items-center gap-1.5">
+                                    Inflation (%)
+                                    <span class="tooltip" data-tooltip="Expected annual rate at which your spending will increase over time">
+                                        <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                    </span>
+                                </label>
                                 <input type="number" id="inflationInput" value="2.5" step="0.1" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase flex justify-between">
-                                Forecast Years <span id="yearDisplay" class="text-indigo-600">30</span>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase flex justify-between items-center">
+                                <span class="flex items-center gap-1.5">
+                                    Forecast Years
+                                    <span class="tooltip" data-tooltip="Number of years to project your retirement savings into the future">
+                                        <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                    </span>
+                                </span>
+                                <span id="yearDisplay" class="text-indigo-600">20</span>
                             </label>
                             <input type="range" id="yearsInput" min="5" max="30" value="20" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
                         </div>
@@ -98,6 +178,9 @@
                     <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
                         <i data-lucide="gift" class="text-rose-500" size="20"></i>
                         One-off Gifts
+                        <span class="tooltip" data-tooltip="Plan large one-time payments like gifts to children. These are deducted from your savings in the selected year">
+                            <i data-lucide="help-circle" size="16" class="text-slate-400 cursor-help font-normal"></i>
+                        </span>
                     </h2>
                     
                     <div id="giftList" class="space-y-3 mb-5">
@@ -129,7 +212,12 @@
                             <i data-lucide="banknote" class="text-emerald-600"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tight">Starting Position</p>
+                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tight flex items-center gap-1.5">
+                                Starting Position
+                                <span class="tooltip" data-tooltip="Your total savings as of now.">
+                                    <i data-lucide="help-circle" size="12" class="text-slate-400 cursor-help"></i>
+                                </span>
+                            </p>
                             <p id="statStarting" class="text-2xl font-bold text-slate-800">£0</p>
                         </div>
                     </div>
@@ -138,7 +226,12 @@
                             <i data-lucide="hourglass" class="text-indigo-600"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tight">Savings Longevity</p>
+                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tight flex items-center gap-1.5">
+                                Savings Longevity
+                                <span class="tooltip" data-tooltip="How long your savings will last based on your spending and income">
+                                    <i data-lucide="help-circle" size="12" class="text-slate-400 cursor-help"></i>
+                                </span>
+                            </p>
                             <p id="statLongevity" class="text-2xl font-bold text-slate-800">Calculating...</p>
                         </div>
                     </div>
