@@ -65,6 +65,14 @@
                             </div>
                         </div>
 
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1.5">Annual Pension Income (£)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-2.5 text-slate-400">£</span>
+                                <input type="number" id="pensionInput" value="15400" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase">Return (%)</label>
@@ -182,7 +190,7 @@
         let chart = null;
 
         // --- Selectors ---
-        const inputs = ['capitalInput', 'spendInput', 'returnInput', 'inflationInput', 'yearsInput'];
+        const inputs = ['capitalInput', 'spendInput', 'pensionInput', 'returnInput', 'inflationInput', 'yearsInput'];
         
         // --- Initial Load ---
         window.onload = () => {
@@ -206,6 +214,7 @@
         function resetDefaults() {
             document.getElementById('capitalInput').value = 600000;
             document.getElementById('spendInput').value = 31000;
+            document.getElementById('pensionInput').value = 15400;
             document.getElementById('returnInput').value = 3;
             document.getElementById('inflationInput').value = 2.5;
             document.getElementById('yearsInput').value = 30;
@@ -238,6 +247,7 @@
         function calculateForecast() {
             const capital = parseFloat(document.getElementById('capitalInput').value) || 0;
             const spend = parseFloat(document.getElementById('spendInput').value) || 0;
+            const pension = parseFloat(document.getElementById('pensionInput').value) || 0;
             const returns = (parseFloat(document.getElementById('returnInput').value) || 0) / 100;
             const inflation = (parseFloat(document.getElementById('inflationInput').value) || 0) / 100;
             const years = parseInt(document.getElementById('yearsInput').value) || 30;
@@ -261,6 +271,9 @@
                     // Apply gifts AFTER calculating interest and spending for the year
                     const yearGifts = gifts.filter(g => g.year == i).reduce((sum, g) => sum + g.amount, 0);
                     currentBalance -= yearGifts;
+                    
+                    // Add pension income at the end of each year
+                    currentBalance += pension;
                     
                     currentSpend = currentSpend * (1 + inflation);
                 } else {
