@@ -100,10 +100,9 @@
                     <i data-lucide="wallet" class="text-indigo-600"></i>
                     Retirement Forecaster
                 </h1>
-                <p class="text-slate-500 mt-1">Plan your future spending and financial legacy.</p>
-                <p class="text-slate-500 mt-1">Income is based on the return multiplied by the savings balance at the start of each year and initial values have been set based on Jan 2026 info.</p>
-                <p class="text-slate-500 mt-1">Expenditure is assumed to grow at the rate of inflation.</p>
-                <p class="text-slate-500 mt-1">Use the help icons for more info.</p>
+                <p class="text-slate-500 mt-2 text-base">Model your retirement savings with inflation-adjusted spending and investment income.</p>
+                <p class="text-slate-500 mt-1 text-sm"><strong>Forward Planning:</strong> See how long your savings last with your chosen spending level.</p>
+                <p class="text-slate-500 mt-0.5 text-sm"><strong>Reverse Planning:</strong> Calculate the maximum you can spend to reach a target savings balance after x years.</p>
             </div>
             <div class="flex flex-col items-end gap-3">
                 <div class="mode-toggle">
@@ -354,16 +353,22 @@
         
         // --- Initial Load ---
         window.onload = () => {
+            lucide.createIcons();
+            initChart();
+            populateYearDropdown();
+            
             // Restore mode from localStorage
             const savedMode = localStorage.getItem('retirementForecastMode');
             if (savedMode) {
                 currentMode = savedMode;
-                switchMode(currentMode);
+                // Update UI without calling updateAll (it will be called below)
+                document.getElementById('forwardModeBtn').classList.toggle('active', savedMode === 'forward');
+                document.getElementById('reverseModeBtn').classList.toggle('active', savedMode === 'reverse');
+                document.getElementById('forwardSpendField').style.display = savedMode === 'forward' ? 'block' : 'none';
+                document.getElementById('reverseTargetFields').style.display = savedMode === 'reverse' ? 'block' : 'none';
+                lucide.createIcons();
             }
             
-            lucide.createIcons();
-            initChart();
-            populateYearDropdown();
             updateAll();
             
             // Add listeners to all inputs
