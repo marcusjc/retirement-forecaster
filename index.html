@@ -62,6 +62,32 @@
         .tooltip:hover::after {
             opacity: 1;
         }
+        
+        /* Mode toggle styles */
+        .mode-toggle {
+            display: inline-flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 4px;
+        }
+        
+        .mode-toggle button {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+        }
+        
+        .mode-toggle button.active {
+            background: white;
+            color: #4f46e5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen">
@@ -79,10 +105,22 @@
                 <p class="text-slate-500 mt-1">Expenditure is assumed to grow at the rate of inflation.</p>
                 <p class="text-slate-500 mt-1">Use the help icons for more info.</p>
             </div>
-            <div class="flex gap-2">
-                <button onclick="resetDefaults()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                    <i data-lucide="rotate-ccw" size="16"></i> Reset
-                </button>
+            <div class="flex flex-col items-end gap-3">
+                <div class="mode-toggle">
+                    <button id="forwardModeBtn" class="active" onclick="switchMode('forward')">
+                        <i data-lucide="trending-down" size="16" style="display: inline; vertical-align: middle;"></i>
+                        Forward Planning
+                    </button>
+                    <button id="reverseModeBtn" onclick="switchMode('reverse')">
+                        <i data-lucide="calculator" size="16" style="display: inline; vertical-align: middle;"></i>
+                        Reverse Planning
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="resetDefaults()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                        <i data-lucide="rotate-ccw" size="16"></i> Reset
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -111,7 +149,7 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div id="forwardSpendField">
                             <label class="block text-sm font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
                                 Annual Spending (£)
                                 <span class="tooltip" data-tooltip="How much you plan to spend each year. This will increase with inflation automatically">
@@ -121,6 +159,30 @@
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-slate-400">£</span>
                                 <input type="number" id="spendInput" value="37200" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div id="reverseTargetFields" style="display: none;">
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                    Target Years
+                                    <span class="tooltip" data-tooltip="Number of years until you want to reach your target balance">
+                                        <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                    </span>
+                                </label>
+                                <input type="number" id="targetYearsInput" value="20" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                    Target Balance (£)
+                                    <span class="tooltip" data-tooltip="Minimum savings balance you want to have after the target years">
+                                        <i data-lucide="help-circle" size="14" class="text-slate-400 cursor-help"></i>
+                                    </span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400">£</span>
+                                    <input type="number" id="targetBalanceInput" value="300000" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                                </div>
                             </div>
                         </div>
 
@@ -226,7 +288,7 @@
                             <i data-lucide="hourglass" class="text-indigo-600"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tight flex items-center gap-1.5">
+                            <p id="statSecondLabel" class="text-xs text-slate-500 uppercase font-bold tracking-tight flex items-center gap-1.5">
                                 Savings Longevity
                                 <span class="tooltip" data-tooltip="How long your savings will last based on your spending and income">
                                     <i data-lucide="help-circle" size="12" class="text-slate-400 cursor-help"></i>
@@ -240,7 +302,10 @@
                 <!-- Chart Container -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold text-slate-800">Projected Savings Balance</h3>
+                        <div>
+                            <h3 class="font-bold text-slate-800">Projected Savings Balance</h3>
+                            <p id="chartSubtext" class="text-xs text-slate-500 mt-1" style="display: none;"></p>
+                        </div>
                         <div class="flex gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Balance</span>
                             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> Spending</span>
@@ -281,12 +346,21 @@
         // --- State ---
         let gifts = [];
         let chart = null;
+        let currentMode = 'forward'; // 'forward' or 'reverse'
+        let calculatedSpending = null;
 
         // --- Selectors ---
-        const inputs = ['capitalInput', 'spendInput', 'pensionInput', 'returnInput', 'inflationInput', 'yearsInput'];
+        const inputs = ['capitalInput', 'spendInput', 'pensionInput', 'returnInput', 'inflationInput', 'yearsInput', 'targetYearsInput', 'targetBalanceInput'];
         
         // --- Initial Load ---
         window.onload = () => {
+            // Restore mode from localStorage
+            const savedMode = localStorage.getItem('retirementForecastMode');
+            if (savedMode) {
+                currentMode = savedMode;
+                switchMode(currentMode);
+            }
+            
             lucide.createIcons();
             initChart();
             populateYearDropdown();
@@ -294,24 +368,45 @@
             
             // Add listeners to all inputs
             inputs.forEach(id => {
-                document.getElementById(id).addEventListener('input', () => {
-                    if (id === 'yearsInput') {
-                        document.getElementById('yearDisplay').innerText = document.getElementById(id).value;
-                        populateYearDropdown();
-                    }
-                    updateAll();
-                });
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', () => {
+                        if (id === 'yearsInput') {
+                            document.getElementById('yearDisplay').innerText = document.getElementById(id).value;
+                            populateYearDropdown();
+                        }
+                        updateAll();
+                    });
+                }
             });
         };
 
+        function switchMode(mode) {
+            currentMode = mode;
+            localStorage.setItem('retirementForecastMode', mode);
+            
+            // Update button states
+            document.getElementById('forwardModeBtn').classList.toggle('active', mode === 'forward');
+            document.getElementById('reverseModeBtn').classList.toggle('active', mode === 'reverse');
+            
+            // Toggle input visibility
+            document.getElementById('forwardSpendField').style.display = mode === 'forward' ? 'block' : 'none';
+            document.getElementById('reverseTargetFields').style.display = mode === 'reverse' ? 'block' : 'none';
+            
+            lucide.createIcons();
+            updateAll();
+        }
+
         function resetDefaults() {
-            document.getElementById('capitalInput').value = 600000;
-            document.getElementById('spendInput').value = 31000;
+            document.getElementById('capitalInput').value = 640000;
+            document.getElementById('spendInput').value = 37200;
             document.getElementById('pensionInput').value = 15400;
-            document.getElementById('returnInput').value = 3;
+            document.getElementById('returnInput').value = 2.1;
             document.getElementById('inflationInput').value = 2.5;
-            document.getElementById('yearsInput').value = 30;
-            document.getElementById('yearDisplay').innerText = 30;
+            document.getElementById('yearsInput').value = 20;
+            document.getElementById('yearDisplay').innerText = 20;
+            document.getElementById('targetYearsInput').value = 20;
+            document.getElementById('targetBalanceInput').value = 300000;
             gifts = [];
             populateYearDropdown();
             updateAll();
@@ -337,9 +432,9 @@
         }
 
         // --- Calculations ---
-        function calculateForecast() {
+        function calculateForecast(overrideSpending = null) {
             const capital = parseFloat(document.getElementById('capitalInput').value) || 0;
-            const spend = parseFloat(document.getElementById('spendInput').value) || 0;
+            const spend = overrideSpending !== null ? overrideSpending : (parseFloat(document.getElementById('spendInput').value) || 0);
             const pension = parseFloat(document.getElementById('pensionInput').value) || 0;
             const returns = (parseFloat(document.getElementById('returnInput').value) || 0) / 100;
             const inflation = (parseFloat(document.getElementById('inflationInput').value) || 0) / 100;
@@ -376,9 +471,64 @@
             return data;
         }
 
+        function calculateReverseSpending() {
+            const targetYears = parseInt(document.getElementById('targetYearsInput').value) || 20;
+            const targetBalance = parseFloat(document.getElementById('targetBalanceInput').value) || 0;
+            
+            // Binary search for optimal spending
+            let minSpend = 0;
+            let maxSpend = 500000;
+            let optimalSpend = 0;
+            const tolerance = 100; // £100 tolerance
+            
+            for (let iteration = 0; iteration < 50; iteration++) {
+                const testSpend = (minSpend + maxSpend) / 2;
+                const data = calculateForecast(testSpend);
+                
+                // Find balance at target year
+                const targetYearData = data.find(d => d.year === targetYears);
+                if (!targetYearData) break;
+                
+                const resultBalance = targetYearData.balance;
+                
+                if (Math.abs(resultBalance - targetBalance) < tolerance) {
+                    optimalSpend = testSpend;
+                    break;
+                }
+                
+                if (resultBalance > targetBalance) {
+                    // Can spend more
+                    minSpend = testSpend;
+                    optimalSpend = testSpend;
+                } else {
+                    // Need to spend less
+                    maxSpend = testSpend;
+                }
+            }
+            
+            return optimalSpend;
+        }
+
         // --- UI Updates ---
         function updateAll() {
-            const data = calculateForecast();
+            let data;
+            
+            if (currentMode === 'reverse') {
+                calculatedSpending = calculateReverseSpending();
+                data = calculateForecast(calculatedSpending);
+                
+                // Update chart subtext
+                const subtextEl = document.getElementById('chartSubtext');
+                subtextEl.textContent = `Based on spending ${formatCurrency(calculatedSpending)} per year`;
+                subtextEl.style.display = 'block';
+            } else {
+                calculatedSpending = null;
+                data = calculateForecast();
+                
+                // Hide chart subtext
+                document.getElementById('chartSubtext').style.display = 'none';
+            }
+            
             updateChart(data);
             updateStats(data);
             updateGiftsUI();
@@ -389,23 +539,37 @@
             const capital = parseFloat(document.getElementById('capitalInput').value) || 0;
             document.getElementById('statStarting').innerText = formatCurrency(capital);
             
-            const depletionPoint = data.find(d => d.balance === 0);
             const longevityText = document.getElementById('statLongevity');
             const longevityCard = document.getElementById('longevityCard');
             const longevityIcon = document.getElementById('longevityIcon');
+            const statLabel = document.getElementById('statSecondLabel');
 
-            if (depletionPoint) {
-                longevityText.innerText = `Year ${depletionPoint.year}`;
-                longevityText.className = "text-2xl font-bold text-rose-600";
-                longevityCard.classList.replace('border-slate-200', 'border-rose-200');
-                longevityIcon.classList.replace('bg-indigo-100', 'bg-rose-100');
-                longevityIcon.innerHTML = `<i data-lucide="alert-triangle" class="text-rose-600"></i>`;
+            if (currentMode === 'reverse') {
+                // Show calculated maximum spending
+                statLabel.innerHTML = `Maximum Annual Spending <span class="tooltip" data-tooltip="The maximum you can spend each year (increasing with inflation) to reach your target balance"><i data-lucide="help-circle" size="12" class="text-slate-400 cursor-help"></i></span>`;
+                longevityText.innerText = formatCurrency(calculatedSpending || 0);
+                longevityText.className = "text-2xl font-bold text-indigo-600";
+                longevityCard.className = "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4";
+                longevityIcon.className = "bg-indigo-100 p-3 rounded-xl transition-colors";
+                longevityIcon.innerHTML = `<i data-lucide="calculator" class="text-indigo-600"></i>`;
             } else {
-                longevityText.innerText = `30+ Years`;
-                longevityText.className = "text-2xl font-bold text-emerald-600";
-                longevityCard.classList.replace('border-rose-200', 'border-slate-200');
-                longevityIcon.classList.replace('bg-rose-100', 'bg-emerald-100');
-                longevityIcon.innerHTML = `<i data-lucide="check-circle" class="text-emerald-600"></i>`;
+                // Show savings longevity
+                statLabel.innerHTML = `Savings Longevity <span class="tooltip" data-tooltip="How long your savings will last based on your spending and income"><i data-lucide="help-circle" size="12" class="text-slate-400 cursor-help"></i></span>`;
+                
+                const depletionPoint = data.find(d => d.balance === 0);
+                if (depletionPoint) {
+                    longevityText.innerText = `Year ${depletionPoint.year}`;
+                    longevityText.className = "text-2xl font-bold text-rose-600";
+                    longevityCard.className = "bg-white p-6 rounded-2xl shadow-sm border border-rose-200 flex items-center gap-4";
+                    longevityIcon.className = "bg-rose-100 p-3 rounded-xl transition-colors";
+                    longevityIcon.innerHTML = `<i data-lucide="alert-triangle" class="text-rose-600"></i>`;
+                } else {
+                    longevityText.innerText = `30+ Years`;
+                    longevityText.className = "text-2xl font-bold text-emerald-600";
+                    longevityCard.className = "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4";
+                    longevityIcon.className = "bg-emerald-100 p-3 rounded-xl transition-colors";
+                    longevityIcon.innerHTML = `<i data-lucide="check-circle" class="text-emerald-600"></i>`;
+                }
             }
             lucide.createIcons();
         }
