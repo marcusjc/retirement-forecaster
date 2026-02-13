@@ -27,6 +27,8 @@
                     Retirement Forecaster
                 </h1>
                 <p class="text-slate-500 mt-1">Plan your future spending and financial legacy.</p>
+                <p class="text-slate-500 mt-1">Income is based on the return multiplied by the savings balance at the start of each year and initial values have been set based on Jan 2026 info. Return can be adjusted below.</p>
+                <p class="text-slate-500 mt-1">Expenditure is assumed to grow at the rate of inflation. You can set this below.</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="resetDefaults()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
@@ -51,7 +53,7 @@
                             <label class="block text-sm font-medium text-slate-600 mb-1.5">Starting Savings (£)</label>
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-slate-400">£</span>
-                                <input type="number" id="capitalInput" value="600000" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                                <input type="number" id="capitalInput" value="640000" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                             </div>
                         </div>
 
@@ -59,14 +61,14 @@
                             <label class="block text-sm font-medium text-slate-600 mb-1.5">Annual Spending (£)</label>
                             <div class="relative">
                                 <span class="absolute left-3 top-2.5 text-slate-400">£</span>
-                                <input type="number" id="spendInput" value="25000" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                                <input type="number" id="spendInput" value="37200" class="w-full pl-8 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase">Return (%)</label>
-                                <input type="number" id="returnInput" value="3" step="0.1" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
+                                <input type="number" id="returnInput" value="2.1" step="0.1" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase">Inflation (%)</label>
@@ -78,7 +80,7 @@
                             <label class="block text-sm font-medium text-slate-600 mb-1.5 text-xs uppercase flex justify-between">
                                 Forecast Years <span id="yearDisplay" class="text-indigo-600">30</span>
                             </label>
-                            <input type="range" id="yearsInput" min="10" max="60" value="30" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                            <input type="range" id="yearsInput" min="5" max="30" value="20" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
                         </div>
                     </div>
                 </div>
@@ -96,7 +98,9 @@
 
                     <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
                         <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="newGiftYear" placeholder="Year" class="p-2 text-sm border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-indigo-500">
+                            <select id="newGiftYear" class="p-2 text-sm border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-indigo-500 bg-white">
+                                <option value="">Select Year</option>
+                            </select>
                             <input type="number" id="newGiftAmount" placeholder="Amount £" class="p-2 text-sm border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-indigo-500">
                         </div>
                         <input type="text" id="newGiftLabel" placeholder="Description" class="w-full p-2 text-sm border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-indigo-500">
@@ -184,6 +188,7 @@
         window.onload = () => {
             lucide.createIcons();
             initChart();
+            populateYearDropdown();
             updateAll();
             
             // Add listeners to all inputs
@@ -191,6 +196,7 @@
                 document.getElementById(id).addEventListener('input', () => {
                     if (id === 'yearsInput') {
                         document.getElementById('yearDisplay').innerText = document.getElementById(id).value;
+                        populateYearDropdown();
                     }
                     updateAll();
                 });
@@ -205,7 +211,27 @@
             document.getElementById('yearsInput').value = 30;
             document.getElementById('yearDisplay').innerText = 30;
             gifts = [];
+            populateYearDropdown();
             updateAll();
+        }
+
+        function populateYearDropdown() {
+            const years = parseInt(document.getElementById('yearsInput').value) || 30;
+            const dropdown = document.getElementById('newGiftYear');
+            const currentValue = dropdown.value;
+            
+            dropdown.innerHTML = '<option value="">Select Year</option>';
+            for (let i = 0; i <= years; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Year ${i}`;
+                dropdown.appendChild(option);
+            }
+            
+            // Restore previous selection if still valid
+            if (currentValue && currentValue <= years) {
+                dropdown.value = currentValue;
+            }
         }
 
         // --- Calculations ---
