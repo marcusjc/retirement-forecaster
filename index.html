@@ -174,9 +174,7 @@
     <!-- Logic Script -->
     <script>
         // --- State ---
-        let gifts = [
-            { id: 1, year: 5, amount: 20000, label: "Gift to Children" }
-        ];
+        let gifts = [];
         let chart = null;
 
         // --- Selectors ---
@@ -206,7 +204,7 @@
             document.getElementById('inflationInput').value = 2.5;
             document.getElementById('yearsInput').value = 30;
             document.getElementById('yearDisplay').innerText = 30;
-            gifts = [{ id: 1, year: 5, amount: 20000, label: "Gift to Children" }];
+            gifts = [];
             updateAll();
         }
 
